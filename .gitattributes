@@ -1,12 +1,16 @@
-# Set default behavior to automatically normalize line endings
+# Auto-detect text files and perform LF normalization
 * text=auto
 
-# Define specific file types to use LF
+# Explicitly set LF for specific file types
 *.sh     text eol=lf
 *.ts     text eol=lf
+*.tsx    text eol=lf
+*.js     text eol=lf
+*.jsx    text eol=lf
 *.json   text eol=lf
+*.css    text eol=lf
 *.md     text eol=lf
 
-# Define specific file types to use CRLF
+# Explicitly set CRLF for Windows-specific files
 *.bat    text eol=crlf
 *.cmd    text eol=crlf
