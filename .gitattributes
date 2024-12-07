@@ -9,8 +9,12 @@
 *.jsx    text eol=lf
 *.json   text eol=lf
 *.css    text eol=lf
+*.html   text eol=lf
 *.md     text eol=lf
 
 # Explicitly set CRLF for Windows-specific files
 *.bat    text eol=crlf
 *.cmd    text eol=crlf
+
+# Ensure .gitignore uses LF
+.gitignore text eol=lf
