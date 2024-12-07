@@ -1,0 +1,12 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Define specific file types to use LF
+*.sh     text eol=lf
+*.ts     text eol=lf
+*.json   text eol=lf
+*.md     text eol=lf
+
+# Define specific file types to use CRLF
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
