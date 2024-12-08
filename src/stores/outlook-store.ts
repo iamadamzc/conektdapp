@@ -16,6 +16,7 @@ interface OutlookState {
   isLoading: boolean;
   error: string | null;
   login: () => Promise<void>;
+  loginWithDifferentAccount: () => Promise<void>;
   setAuthenticated: (value: boolean) => void;
   syncContacts: () => Promise<void>;
 }
@@ -32,8 +33,23 @@ export const useOutlookStore = create<OutlookState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       await graphService.login();
+      set({ isAuthenticated: true });
     } catch (error) {
       set({ error: 'Failed to login to Microsoft account' });
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  loginWithDifferentAccount: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      await graphService.loginWithDifferentAccount();
+      set({ isAuthenticated: true });
+    } catch (error) {
+      set({ error: 'Failed to login to Microsoft account' });
+      throw error;
     } finally {
       set({ isLoading: false });
     }
@@ -83,6 +99,7 @@ export const useOutlookStore = create<OutlookState>((set) => ({
       set({ contacts: uniqueContacts });
     } catch (error) {
       set({ error: 'Failed to sync contacts' });
+      throw error;
     } finally {
       set({ isLoading: false });
     }

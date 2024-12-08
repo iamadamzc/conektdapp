@@ -1,6 +1,6 @@
 import { Client } from "@microsoft/microsoft-graph-client";
 import { AuthCodeMSALBrowserAuthenticationProvider } from "@microsoft/microsoft-graph-client/authProviders/authCodeMsalBrowser";
-import { PublicClientApplication, AccountInfo } from "@azure/msal-browser";
+import { PublicClientApplication, AccountInfo, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { loginRequest, msalConfig } from "./auth-config";
 
 export class GraphService {
@@ -21,19 +21,41 @@ export class GraphService {
 
   async initialize() {
     await this.msalInstance.initialize();
-    const accounts = this.msalInstance.getAllAccounts();
-    if (accounts.length > 0) {
-      await this.setGraphClient(accounts[0]);
-    }
+    await this.handleRedirectPromise();
   }
 
   async login() {
     try {
-      const response = await this.msalInstance.loginPopup(loginRequest);
-      if (response?.account) {
-        await this.setGraphClient(response.account);
-        return response.account;
+      const loginResponse = await this.msalInstance.loginPopup({
+        ...loginRequest,
+        prompt: 'select_account'
+      });
+      
+      if (loginResponse) {
+        await this.setGraphClient(loginResponse.account);
+        return loginResponse.account;
       }
+      return null;
+    } catch (error) {
+      console.error("Error during login:", error);
+      throw error;
+    }
+  }
+
+  async loginWithDifferentAccount() {
+    try {
+      // Clear cache before login to ensure fresh login
+      await this.msalInstance.clearCache();
+      const loginResponse = await this.msalInstance.loginPopup({
+        ...loginRequest,
+        prompt: 'select_account'
+      });
+      
+      if (loginResponse) {
+        await this.setGraphClient(loginResponse.account);
+        return loginResponse.account;
+      }
+      return null;
     } catch (error) {
       console.error("Error during login:", error);
       throw error;
@@ -42,6 +64,7 @@ export class GraphService {
 
   async handleRedirectPromise() {
     try {
+      await this.msalInstance.handleRedirectPromise();
       const accounts = this.msalInstance.getAllAccounts();
       if (accounts.length > 0) {
         await this.setGraphClient(accounts[0]);
@@ -49,7 +72,7 @@ export class GraphService {
       }
       return null;
     } catch (error) {
-      console.error("Error handling auth state:", error);
+      console.error("Error handling redirect:", error);
       throw error;
     }
   }
@@ -60,7 +83,7 @@ export class GraphService {
       {
         account,
         scopes: loginRequest.scopes,
-        interactionType: "popup",
+        interactionType: "popup"
       }
     );
 
@@ -70,35 +93,45 @@ export class GraphService {
   async getCalendarEvents(startDate: Date, endDate: Date) {
     if (!this.graphClient) throw new Error("Graph client not initialized");
 
-    const response = await this.graphClient
-      .api("/me/calendarView")
-      .query({
-        startDateTime: startDate.toISOString(),
-        endDateTime: endDate.toISOString(),
-      })
-      .select("subject,start,end,attendees")
-      .orderby("start/dateTime")
-      .get();
+    try {
+      const response = await this.graphClient
+        .api("/me/calendarView")
+        .query({
+          startDateTime: startDate.toISOString(),
+          endDateTime: endDate.toISOString(),
+        })
+        .select("subject,start,end,attendees")
+        .orderby("start/dateTime")
+        .get();
 
-    return response.value;
+      return response.value;
+    } catch (error) {
+      console.error("Error fetching calendar events:", error);
+      throw error;
+    }
   }
 
   async getEmailContacts(days: number = 30) {
     if (!this.graphClient) throw new Error("Graph client not initialized");
 
-    const date = new Date();
-    date.setDate(date.getDate() - days);
+    try {
+      const date = new Date();
+      date.setDate(date.getDate() - days);
 
-    const response = await this.graphClient
-      .api("/me/messages")
-      .query({
-        $filter: `receivedDateTime ge ${date.toISOString()}`,
-      })
-      .select("subject,from,toRecipients,ccRecipients")
-      .orderby("receivedDateTime desc")
-      .get();
+      const response = await this.graphClient
+        .api("/me/messages")
+        .query({
+          $filter: `receivedDateTime ge ${date.toISOString()}`,
+        })
+        .select("subject,from,toRecipients,ccRecipients,receivedDateTime")
+        .orderby("receivedDateTime desc")
+        .get();
 
-    return response.value;
+      return response.value;
+    } catch (error) {
+      console.error("Error fetching email contacts:", error);
+      throw error;
+    }
   }
 }
 

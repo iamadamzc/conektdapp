@@ -1,58 +1,43 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStore } from '@/stores/auth-store';
+import { OnboardingPage } from '@/pages/onboarding';
+import { DashboardPage } from '@/pages/dashboard';
+import { SettingsPage } from '@/pages/settings';
+import { MicrosoftConnectPage } from '@/pages/microsoft-connect';
 import { Header } from '@/components/layout/header';
-import { ConnectionList } from '@/components/dashboard/connection-list';
-import { Linkedin } from 'lucide-react';
-import { MicrosoftLogin } from '@/components/auth/microsoft-login';
-import { useOutlookStore } from '@/stores/outlook-store';
-import { graphService } from '@/lib/graph';
+import { Navigation } from '@/components/layout/navigation';
 
 function App() {
-  const { isAuthenticated, setAuthenticated } = useOutlookStore();
-
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        await graphService.initialize();
-        const account = await graphService.handleRedirectPromise();
-        if (account) {
-          setAuthenticated(true);
-        }
-      } catch (error) {
-        console.error('Auth error:', error);
-      }
-    };
-
-    initializeAuth();
-  }, [setAuthenticated]);
+  const { isAuthenticated } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      {!isAuthenticated ? (
-        <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-          <MicrosoftLogin />
-        </div>
-      ) : (
-        <div className="flex">
-          {/* LinkedIn Window Area */}
-          <div className="fixed left-0 top-16 w-1/2 h-[calc(100vh-4rem)] bg-gray-100 flex items-center justify-center">
-            <div className="text-center p-6">
-              <Linkedin className="h-16 w-16 text-[#0A66C2] mx-auto mb-4" />
-              <p className="text-lg text-gray-600">
-                LinkedIn search will open here
-              </p>
-            </div>
-          </div>
-
-          {/* Main Content Area */}
-          <main className="fixed right-0 top-16 w-1/2 h-[calc(100vh-4rem)] overflow-y-auto">
-            <div className="max-w-2xl mx-auto px-4 py-8">
-              <ConnectionList />
-            </div>
-          </main>
-        </div>
-      )}
-    </div>
+    <BrowserRouter>
+      <div className="min-h-screen bg-gray-50">
+        {isAuthenticated && <Header />}
+        
+        <Routes>
+          {!isAuthenticated ? (
+            <>
+              <Route path="/onboarding" element={<OnboardingPage />} />
+              <Route path="/connect-microsoft" element={<MicrosoftConnectPage />} />
+              <Route path="*" element={<Navigate to="/onboarding" replace />} />
+            </>
+          ) : (
+            <>
+              <div className="border-b border-gray-200 bg-white">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                  <Navigation />
+                </div>
+              </div>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </>
+          )}
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
