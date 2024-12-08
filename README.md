@@ -1,5 +1,5 @@
 # Conektd
-
+test
 Conektd is a proprietary software solution that streamlines the process of connecting with LinkedIn contacts based on meeting attendees from Outlook. It provides an intuitive interface for managing and sending personalized LinkedIn connection requests.
 
 ## Proprietary Software Notice
