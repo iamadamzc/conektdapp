@@ -18,6 +18,7 @@ interface AuthState {
   register: (data: Omit<User, 'id' | 'createdAt'>) => Promise<void>;
   login: (email: string) => Promise<void>;
   logout: () => void;
+  clearAuthState: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -31,7 +32,6 @@ export const useAuthStore = create<AuthState>()(
       register: async (data) => {
         set({ isLoading: true, error: null });
         try {
-          // In a real app, this would be an API call
           const user: User = {
             ...data,
             id: crypto.randomUUID(),
@@ -49,7 +49,6 @@ export const useAuthStore = create<AuthState>()(
       login: async (email) => {
         set({ isLoading: true, error: null });
         try {
-          // In a real app, this would be an API call
           const user: User = {
             id: crypto.randomUUID(),
             email,
@@ -68,11 +67,20 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        localStorage.clear(); // Clear all localStorage
+        sessionStorage.clear(); // Clear all sessionStorage
         set({ user: null, isAuthenticated: false });
+      },
+
+      clearAuthState: () => {
+        localStorage.clear(); // Clear all localStorage
+        sessionStorage.clear(); // Clear all sessionStorage
+        set({ user: null, isAuthenticated: false, error: null });
       },
     }),
     {
       name: 'auth-storage',
+      skipHydration: true, // Prevent auto-hydration of persisted state
     }
   )
 );

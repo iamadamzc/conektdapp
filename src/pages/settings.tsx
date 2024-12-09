@@ -1,41 +1,75 @@
 import React from 'react';
+import { PageHeader } from '@/components/ui/page-header';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { useOutlookStore } from '@/stores/outlook-store';
+import { GmailLogin } from '@/components/auth/gmail-login';
+import { MicrosoftLogin } from '@/components/auth/microsoft-login';
+import { useEmailStore } from '@/stores/email-store';
+import { RefreshCw } from 'lucide-react';
 
 export const SettingsPage = () => {
-  const { syncContacts, isLoading } = useOutlookStore();
+  const { provider, isLoading, syncData } = useEmailStore();
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-        <div className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Settings</h2>
-          
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Microsoft Integration</h3>
-              <p className="text-sm text-gray-500 mb-4">
-                Configure how Conektd syncs with your Microsoft account.
-              </p>
-              <Button
-                variant="secondary"
-                onClick={() => syncContacts()}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Syncing...' : 'Sync Outlook Data'}
-              </Button>
-            </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Settings"
+        description="Manage your account and email integration settings"
+      />
 
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-2">Data Management</h3>
-              <p className="text-sm text-gray-500 mb-4">
-                Control how your data is stored and managed within Conektd.
+      <Card>
+        <CardHeader>
+          <CardTitle>Email Integration</CardTitle>
+        </CardHeader>
+        
+        <Tabs defaultValue="microsoft" className="p-6">
+          <TabsList className="mb-4">
+            <TabsTrigger value="microsoft">Microsoft Outlook</TabsTrigger>
+            <TabsTrigger value="gmail">Gmail</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="microsoft">
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">
+                Connect your Microsoft Outlook account to sync contacts and calendar events.
               </p>
-              <Button variant="outline">Export Connections</Button>
+              <MicrosoftLogin />
+              {provider === 'microsoft' && (
+                <Button
+                  variant="outline"
+                  onClick={syncData}
+                  disabled={isLoading}
+                  className="w-full"
+                >
+                  <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  {isLoading ? 'Syncing...' : 'Sync Now'}
+                </Button>
+              )}
             </div>
-          </div>
-        </div>
-      </div>
+          </TabsContent>
+
+          <TabsContent value="gmail">
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">
+                Connect your Gmail account to sync contacts and calendar events.
+              </p>
+              <GmailLogin />
+              {provider === 'gmail' && (
+                <Button
+                  variant="outline"
+                  onClick={syncData}
+                  disabled={isLoading}
+                  className="w-full"
+                >
+                  <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  {isLoading ? 'Syncing...' : 'Sync Now'}
+                </Button>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+      </Card>
     </div>
   );
 };

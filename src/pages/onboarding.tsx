@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link2 } from 'lucide-react';
 import { PersonalInfoStep } from '@/components/onboarding/onboarding-steps';
-import { MicrosoftLogin } from '@/components/auth/microsoft-login';
+import { EmailProviderStep } from '@/components/onboarding/email-provider-step';
 
 export const OnboardingPage = () => {
   const [step, setStep] = useState(1);
@@ -17,15 +17,7 @@ export const OnboardingPage = () => {
           {step === 1 ? (
             <PersonalInfoStep onNext={() => setStep(2)} />
           ) : (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-semibold text-gray-900">Connect Microsoft Account</h2>
-                <p className="text-gray-600">
-                  Link your Microsoft account to sync your Outlook contacts and calendar
-                </p>
-              </div>
-              <MicrosoftLogin />
-            </div>
+            <EmailProviderStep />
           )}
         </div>
 
